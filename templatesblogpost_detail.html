@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} - Blog Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <article class="card">
+            <div class="card-body">
+                <h1 class="card-title">{{ post.title }}</h1>
+                
+                <div class="post-meta mb-3">
+                    <p class="text-muted">
+                        By <a href="{% url 'blog:user_profile' post.author.username %}" class="text-decoration-none">
+                            <strong>{{ post.author.username }}</strong>
+                        </a>
+                        on {{ post.created_at|date:"F d, Y \a\t g:i A" }}
+                        {% if post.updated_at != post.created_at %}
+                        • Updated on {{ post.updated_at|date:"F d, Y \a\t g:i A" }}
+                        {% endif %}
+                    </p>
+                    
+                    {% if post.category %}
+                    <span class="badge bg-secondary">{{ post.category }}</span>
+                    {% endif %}
+                    
+                    {% if post.get_tags_list %}
+                    <div class="mt-2">
+                        {% for tag in post.get_tags_list %}
+                        <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="markdown-content">
+                    {{ post.get_markdown_content|safe }}
+                </div>
+                
+                {% if user == post.author %}
+                <hr>
+                <div class="post-actions">
+                    <a href="{% url 'blog:post_update' post.pk %}" class="btn btn-warning btn-sm">
+                        Edit Post
+                    </a>
+                    <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-danger btn-sm">
+                        Delete Post
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </article>
+        
+        <!-- Navigation to other posts -->
+        <div class="row mt-4">
+            <div class="col-6">
+                {% if post.get_previous_by_created_at %}
+                <a href="{% url 'blog:post_detail' post.get_previous_by_created_at.pk %}" class="btn btn-outline-primary">
+                    ← Previous Post
+                </a>
+                {% endif %}
+            </div>
+            <div class="col-6 text-end">
+                {% if post.get_next_by_created_at %}
+                <a href="{% url 'blog:post_detail' post.get_next_by_created_at.pk %}" class="btn btn-outline-primary">
+                    Next Post →
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Author Info -->
+        <div class="card">
+            <div class="card-header">
+                <h5>About the Author</h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ post.author.username }}</h6>
+                <p class="text-muted">
+                    {% with post.author.post_set.count as post_count %}
+                    {{ post_count }} post{{ post_count|pluralize }} published
+                    {% endwith %}
+                </p>
+                <a href="{% url 'blog:user_profile' post.author.username %}" class="btn btn-outline-primary btn-sm">
+                    View Profile
+                </a>
+            </div>
+        </div>
+        
+        <!-- More posts by this author -->
+        {% with post.author.post_set.all|slice:":3" as author_posts %}
+        {% if author_posts %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>More from {{ post.author.username }}</h5>
+            </div>
+            <div class="card-body">
+                {% for other_post in author_posts %}
+                {% if other_post != post %}
+                <div class="mb-2">
+                    <a href="{% url 'blog:post_detail' other_post.pk %}" class="text-decoration-none">
+                        {{ other_post.title }}
+                    </a>
+                    <small class="text-muted d-block">{{ other_post.created_at|date:"M d, Y" }}</small>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <!-- Back to home -->
+        <div class="mt-4">
+            <a href="{% url 'blog:home' %}" class="btn btn-secondary">
+                ← Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

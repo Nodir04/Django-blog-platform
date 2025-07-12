@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - Mini Medium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'blog/css/post-detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Post Header -->
+            <div class="post-header mb-4">
+                <h1 class="post-title">{{ post.title }}</h1>
+                <div class="post-meta d-flex align-items-center mb-3">
+                    <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=007bff&color=fff&size=40" 
+                         alt="{{ post.author.username }}" class="author-avatar me-2">
+                    <div>
+                        <span class="author-name">{{ post.author.username }}</span>
+                        <small class="text-muted d-block">
+                            Published on {{ post.created_at|date:"F j, Y" }}
+                            {% if post.updated_at != post.created_at %}
+                                • Updated {{ post.updated_at|date:"F j, Y" }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                {% if request.user == post.author %}
+                <div class="post-actions mb-3">
+                    <a href="{% url 'blog:post_edit' post.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-outline-danger btn-sm" 
+                       onclick="return confirm('Are you sure you want to delete this post?')">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Post Content -->
+            <div class="post-content">
+                {{ post.content_html|safe }}
+            </div>
+
+            <!-- Post Footer -->
+            <div class="post-footer mt-5 pt-4 border-top">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="author-info d-flex align-items-center">
+                            <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=007bff&color=fff&size=60" 
+                                 alt="{{ post.author.username }}" class="author-avatar-large me-3">
+                            <div>
+                                <h6 class="mb-1">{{ post.author.username }}</h6>
+                                <small class="text-muted">
+                                    Member since {{ post.author.date_joined|date:"F Y" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <a href="{% url 'blog:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Posts
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Posts (if you want to add this feature) -->
+            <div class="related-posts mt-5">
+                <h4>More from {{ post.author.username }}</h4>
+                <div class="row">
+                    {% for related_post in post.author.posts.all|slice:":3" %}
+                        {% if related_post != post %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <a href="{% url 'blog:post_detail' related_post.pk %}" class="text-decoration-none">
+                                            {{ related_post.title|truncatechars:50 }}
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">{{ related_post.created_at|date:"M j, Y" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+{% endblock %}
