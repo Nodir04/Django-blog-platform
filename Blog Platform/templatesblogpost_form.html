@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %} - Blog Platform
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4>
+                    {% if form.instance.pk %}
+                    Edit Post: {{ form.instance.title }}
+                    {% else %}
+                    Create New Post
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger">{{ form.title.errors }}</div>
+                        {% endif %}
+                        {% if form.title.help_text %}
+                            <small class="form-text text-muted">{{ form.title.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger">{{ form.category.errors }}</div>
+                        {% endif %}
+                        {% if form.category.help_text %}
+                            <small class="form-text text-muted">{{ form.category.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                        {{ form.tags }}
+                        {% if form.tags.errors %}
+                            <div class="text-danger">{{ form.tags.errors }}</div>
+                        {% endif %}
+                        {% if form.tags.help_text %}
+                            <small class="form-text text-muted">{{ form.tags.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
+                        
+                        <!-- Tabs for Write/Preview -->
+                        <ul class="nav nav-tabs" id="contentTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="write-tab" data-bs-toggle="tab" data-bs-target="#write" type="button" role="tab">
+                                    Write
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="preview-tab-btn" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab" onclick="showMarkdownPreview()">
+                                    Preview
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="contentTabsContent">
+                            <div class="tab-pane fade show active" id="write" role="tabpanel">
+                                {{ form.content }}
+                                {% if form.content.errors %}
+                                    <div class="text-danger">{{ form.content.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="tab-pane fade" id="preview" role="tabpanel">
+                                <div id="preview-content" class="markdown-content">
+                                    <p class="text-muted">Preview will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if form.content.help_text %}
+                            <small class="form-text text-muted">{{ form.content.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Markdown Help -->
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#markdownHelp">
+                            Markdown Help
+                        </button>
+                        <div class="collapse mt-2" id="markdownHelp">
+                            <div class="card card-body">
+                                <h6>Markdown Syntax Guide:</h6>
+                                <ul class="list-unstyled">
+                                    <li><code># Heading 1</code> → <strong>Large heading</strong></li>
+                                    <li><code>## Heading 2</code> → <strong>Medium heading</strong></li>
+                                    <li><code>**bold text**</code> → <strong>bold text</strong></li>
+                                    <li><code>*italic text*</code> → <em>italic text</em></li>
+                                    <li><code>[link text](url)</code> → <a href="#">link text</a></li>
+                                    <li><code>![alt text](image-url)</code> → Image</li>
+                                    <li><code>```code block```</code> → Code block</li>
+                                    <li><code>- List item</code> → • List item</li>
+                                    <li><code>> Quote</code> → Quote block</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}Update Post{% else %}Create Post{% endif %}
+                        </button>
+                        <a href="{% if form.instance.pk %}{% url 'blog:post_detail' form.instance.pk %}{% else %}{% url 'blog:home' %}{% endif %}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-save content to localStorage (optional feature)
+    const contentTextarea = document.getElementById('id_content');
+    if (contentTextarea) {
+        // Load saved content on page load
+        const savedContent = localStorage.getItem('blog_post_draft');
+        if (savedContent && !contentTextarea.value) {
+            contentTextarea.value = savedContent;
+        }
+        
+        // Save content as user types
+        contentTextarea.addEventListener('input', function() {
+            localStorage.setItem('blog_post_draft', this.value);
+        });
+        
+        // Clear saved content on form submit
+        document.querySelector('form').addEventListener('submit', function() {
+            localStorage.removeItem('blog_post_draft');
+        });
+    }
+    
+    // Enhanced preview functionality
+    document.getElementById('preview-tab-btn').addEventListener('click', function() {
+        setTimeout(showMarkdownPreview, 100);
+    });
+</script>
+{% endblock %}

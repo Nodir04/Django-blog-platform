@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %} - Mini Medium
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'blog/css/post-form.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        {% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="post-form">
+                        {% csrf_token %}
+                        
+                        <!-- Title Field -->
+                        <div class="mb-4">
+                            <label for="id_title" class="form-label fw-bold">Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Content Field with Toolbar -->
+                        <div class="mb-4">
+                            <label for="id_content" class="form-label fw-bold">Content</label>
+                            
+                            <!-- Formatting Toolbar -->
+                            <div class="formatting-toolbar mb-2">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="bold" title="Bold">
+                                        <i class="fas fa-bold"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="italic" title="Italic">
+                                        <i class="fas fa-italic"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="code" title="Code">
+                                        <i class="fas fa-code"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="btn-group ms-2" role="group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="h1" title="Heading 1">
+                                        H1
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="h2" title="Heading 2">
+                                        H2
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="h3" title="Heading 3">
+                                        H3
+                                    </button>
+                                </div>
+                                
+                                <div class="btn-group ms-2" role="group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="ul" title="Bullet List">
+                                        <i class="fas fa-list-ul"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="ol" title="Numbered List">
+                                        <i class="fas fa-list-ol"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="quote" title="Quote">
+                                        <i class="fas fa-quote-right"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="btn-group ms-2" role="group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="link" title="Link">
+                                        <i class="fas fa-link"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-format="image" title="Image">
+                                        <i class="fas fa-image"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Preview Toggle -->
+                                <div class="btn-group ms-auto" role="group">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="preview-btn">
+                                        <i class="fas fa-eye me-1"></i>Preview
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="edit-btn" style="display: none;">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Content Editor -->
+                            <div id="textarea-container">
+                                {{ form.content }}
+                            </div>
+                            
+                            <!-- Preview Container -->
+                            <div id="preview-content" class="preview-container" style="display: none;">
+                                <!-- Preview content will be loaded here -->
+                            </div>
+                            
+                            {% if form.content.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.content.errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Markdown Help -->
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), ![image](url), > quote, # heading
+                                    <span class="ms-3">
+                                        <kbd>Ctrl</kbd>+<kbd>P</kbd> for preview
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'blog:home' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            
+                            <div>
+                                {% if form.instance.pk %}
+                                    <a href="{% url 'blog:post_detail' form.instance.pk %}" class="btn btn-outline-info me-2">
+                                        <i class="fas fa-eye me-1"></i>View Post
+                                    </a>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>
+                                    {% if form.instance.pk %}Update Post{% else %}Create Post{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Markdown Quick Reference -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#markdown-help">
+                            <i class="fas fa-question-circle me-1"></i>Markdown Quick Reference
+                        </button>
+                    </h5>
+                </div>
+                <div id="markdown-help" class="collapse">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Headers</h6>
+                                <pre><code># H1
+## H2
+### H3</code></pre>
+                                
+                                <h6>Emphasis</h6>
+                                <pre><code>**bold**
+*italic*
+`code`</code></pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Links & Images</h6>
+                                <pre><code>[link text](url)
+![alt text](image-url)</code></pre>
+                                
+                                <h6>Lists</h6>
+                                <pre><code>- Bullet point
+1. Numbered list
+> Quote</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="{% static 'blog/js/markdown-preview.js' %}"></script>
+{% endblock %}
